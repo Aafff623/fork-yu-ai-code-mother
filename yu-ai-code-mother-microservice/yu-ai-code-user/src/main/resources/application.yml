@@ -33,7 +33,7 @@ server:
 springdoc:
   group-configs:
     - group: 'default'
-      packages-to-scan: com.yupi.yuaicodeuser.controller
+      packages-to-scan: com.threetwoa.yuaicodeuser.controller
 # knife4j
 knife4j:
   enable: true

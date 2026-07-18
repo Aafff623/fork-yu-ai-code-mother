@@ -68,7 +68,7 @@ langchain4j:
 springdoc:
   group-configs:
     - group: 'default'
-      packages-to-scan: com.yupi.yuaicodemother.controller
+      packages-to-scan: com.threetwoa.yuaicodemother.controller
 # knife4j
 knife4j:
   enable: true
