@@ -28,6 +28,8 @@
 
 ## 功能矩阵
 
+<p align="center"><img src="assets/images/readme/features.png" alt="核心能力总览" width="100%"></p>
+
 | 能力 | 实现位置 | 说明 |
 |---|---|---|
 | 多类型代码生成 | `ai/`、`core/` | HTML、多文件与 Vue 项目生成 |
@@ -37,6 +39,10 @@
 | 单体后端 | `src/main/` | 完整业务实现与管理接口 |
 | 微服务版本 | `yu-ai-code-mother-microservice/` | 用户、应用、网关及公共客户端拆分 |
 | 前端 | `yu-ai-code-mother-frontend/` | Vue 3 应用创建、对话和预览界面 |
+
+## 主链路
+
+<p align="center"><img src="assets/images/readme/workflow.png" alt="产品主链路" width="100%"></p>
 
 ## 快速开始
 
@@ -54,7 +60,13 @@ npm install
 npm run dev
 ```
 
+## 技术栈
+
+<p align="center"><img src="assets/images/readme/tech-stack.png" alt="技术栈分层" width="100%"></p>
+
 ## 架构
+
+<p align="center"><img src="assets/images/readme/architecture.png" alt="系统架构" width="100%"></p>
 
 ```text
 Vue Client → Application API → Code Generation Facade
@@ -68,6 +80,8 @@ Vue Client → Application API → Code Generation Facade
 生成链路始终把模型输出视为不可信输入：限制工作目录、校验生成类型、处理解析失败，并通过明确消息区分请求、工具执行和最终结果。
 
 ## 模块阅读顺序
+
+<p align="center"><img src="assets/images/readme/structure.png" alt="仓库目录结构" width="100%"></p>
 
 | 顺序 | 路径 | 阅读目的 |
 |---|---|---|
@@ -86,6 +100,16 @@ cd yu-ai-code-mother-frontend && npm run type-check && npm run build
 ```
 
 上游同步时必须人工审查包坐标、Mapper namespace、扫描路径和品牌文案，避免回退 `com.threetwoa` 迁移。
+
+## 视觉画册
+
+点击缩略图可查看原始矢量图：
+
+| | |
+|:---:|:---:|
+| [![Features](assets/images/readme/features.png)](assets/images/readme/features.svg)<br>**Features** · 核心能力 | [![Architecture](assets/images/readme/architecture.png)](assets/images/readme/architecture.svg)<br>**Architecture** · 系统边界 |
+| [![Tech Stack](assets/images/readme/tech-stack.png)](assets/images/readme/tech-stack.svg)<br>**Tech Stack** · 技术分层 | [![Workflow](assets/images/readme/workflow.png)](assets/images/readme/workflow.svg)<br>**Workflow** · 主链路 |
+| [![Structure](assets/images/readme/structure.png)](assets/images/readme/structure.svg)<br>**Structure** · 仓库地图 | |
 
 ## 维护者与许可
 
