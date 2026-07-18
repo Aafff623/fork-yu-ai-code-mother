@@ -1,7 +1,29 @@
-# Domain
+# Domain Map
 
-- 项目：AI Code Mother
-- 定位：企业级 AI 零代码应用生成平台，覆盖提示词、代码生成、实时预览、部署、可观测与微服务演进。
-- 模块：src/ 单体后端 · yu-ai-code-mother-frontend/ 前端 · yu-ai-code-mother-microservice/ 微服务
-- 技术：Java · Spring Boot · Spring AI · Vue · Redis · MySQL
+## 产品目标
 
+从自然语言需求生成、预览、构建并部署 Web 应用的 AI 代码平台。
+
+## 代码所有权
+
+| 范围 | 职责 |
+|---|---|
+| `src/` | 单体后端 |
+| `yu-ai-code-mother-frontend/` | 前端 |
+| `yu-ai-code-mother-microservice/` | 微服务实现 |
+| `sql/` | 数据结构 |
+
+## 主链路
+
+`需求输入 → 类型路由 → 流式代码生成 → 文件工具 → 项目构建 → 预览/部署 → 历史记录`
+
+## 不变量
+
+- 身份标识使用 `threetwoa`；上游名称仅用于来源说明。
+- 业务入口不得绕过权限、校验、协议或持久化边界。
+- 外部服务失败必须有显式错误或保守降级，不能伪造成功。
+- 配置与凭据分离，仓库只保留安全示例。
+
+## 已知风险
+
+模型生成文件必须限制路径；工具消息和正文消息不能混淆；单体与微服务存在双实现；前端已有 string/number 类型债务。
