@@ -3,7 +3,7 @@
 | 术语 | 含义 |
 |---|---|
 | Origin | `Aafff623/fork-yu-ai-code-mother`，当前二开远程仓库 |
-| Upstream | 原始项目远程，仅用于同步来源与历史 |
+| Upstream | 原作者李鱼皮（liyupi）的原始项目远程，用于同步来源、历史与许可证信息 |
 | Product root | src/ 单体后端；yu-ai-code-mother-frontend/ 前端；yu-ai-code-mother-microservice/ 微服务实现；sql/ 数据结构 |
 | Main flow | 需求输入 → 类型路由 → 流式代码生成 → 文件工具 → 项目构建 → 预览/部署 → 历史记录 |
 | Handoff | 实施前后的任务合同，记录范围、验证、风险和回滚 |
