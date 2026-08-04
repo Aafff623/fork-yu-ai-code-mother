@@ -13,7 +13,7 @@
   <img src="https://img.shields.io/badge/Maintainer-threetwoa-6366F1?style=for-the-badge" alt="Maintainer threetwoa">
 </p>
 
-<p align="center"><a href="#产品边界">产品边界</a> · <a href="#功能矩阵">功能矩阵</a> · <a href="#快速开始">快速开始</a> · <a href="#架构">架构</a> · <a href="#模块阅读顺序">模块阅读顺序</a></p>
+<p align="center"><a href="#产品边界">产品边界</a> · <a href="#功能矩阵">功能矩阵</a> · <a href="#快速开始">快速开始</a> · <a href="#preview">Preview</a> · <a href="#showcase">Showcase</a> · <a href="#架构">架构</a> · <a href="#模块阅读顺序">模块阅读顺序</a> · <a href="#key-docs">Key docs</a></p>
 
 > 基于 [liyupi/yu-ai-code-mother](https://github.com/liyupi/yu-ai-code-mother) 进行二次开发。上游版权和许可证声明继续有效；本分支的源码身份、包坐标与维护信息由 `threetwoa` 维护。
 
@@ -100,6 +100,50 @@ cd yu-ai-code-mother-frontend && npm run type-check && npm run build
 ```
 
 上游同步时必须人工审查包坐标、Mapper namespace、扫描路径和品牌文案，避免回退 `com.threetwoa` 迁移。
+
+## Preview
+
+本仓是单产品 Web 应用，**不**单独建资产 Gallery Preview 站；用下方 Showcase 与 README 预览壳即可。
+
+### README 本地预览壳
+
+```bash
+python -m http.server 4313
+# 浏览器打开 http://127.0.0.1:4313/preview-readme.html
+```
+
+须用 HTTP 打开；直接 `file://` 无法加载 `README.md`。
+
+## Showcase
+
+推荐演示路径：登录 → 创建应用 → 输入需求 → 观察 SSE 生成 → 预览 / 部署。
+
+真机截图槽位：`assets/images/readme/showcase-*.png`（待视觉验收后用 Playwright 补齐）。
+
+## Key docs
+
+| 文件 | 用途 |
+|---|---|
+| `AGENTS.md` | Agent 硬约束与任务流 |
+| `CONTEXT.md` | 领域事实与技术栈 |
+| `LANGUAGES.md` | 共享用词 |
+| `CLAUDE.md` | 三层加载与维护偏好 |
+| `docs/agents/` | workflow / deliver / domain / issue-tracker… |
+| `docs/outputs/` | report · prd · handoff · commit-history |
+| `docs/adr/` | 架构决策 |
+| `assets/images/readme/` | README 契约配图 |
+
+## 仓库结构摘要
+
+```text
+src/main/                         单体后端
+yu-ai-code-mother-frontend/       Vue 3 前端
+yu-ai-code-mother-microservice/   七模块微服务
+sql/                              数据库脚本
+docs/{agents,adr,outputs,…}      Agent 与产物
+assets/images/readme/             README 配图
+.cursor/rules/                    项目级 Cursor MDC
+```
 
 ## 视觉画册
 

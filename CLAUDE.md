@@ -1,38 +1,36 @@
-# AGENTS.md
+# CLAUDE.md
 
-> **Output Style**: `humanizer-output-style` skill — 统一语气与去 AI 味。详见 `skills/humanizer-output-style/SKILL.md`
+> **Output Style**: `humanizer-output-style` — see `~/.claude/skills/humanizer-output-style/SKILL.md`  
+> **Windows Rules**: `.cursor/rules/windows-path-discipline.mdc` · `windows-shell-discipline.mdc`  
+> **Answer Format**: `.cursor/rules/answer-format.mdc`  
+> **硬约束入口**: 根 `AGENTS.md`（勿与本文件大段矛盾重复）
 
-## 项目使命
+## 维护协议（三层加载）
 
-从自然语言需求生成、预览、构建并部署 Web 应用的 AI 代码平台。维护目标是让上游能力可持续二开，同时保持来源、许可证和行为边界清晰。
+1. **L0 根入口**：`AGENTS.md` · `CONTEXT.md` · `LANGUAGES.md` · 本文件  
+2. **L1 Agent 流程**：`docs/agents/{workflow,deliver,archive,domain,issue-tracker,triage-labels,voice}.md`  
+3. **L2 任务产物**：`docs/outputs/{report,prd,handoff,commit-history}/` · `docs/adr/`
 
-## 开始任务前
+禁止再维护 `docs/agents/language.md` / `docs/agents/context.md`。
 
-1. 阅读 `CONTEXT.md` 与 `docs/agents/domain.md`。
-2. 用 `git status --short` 确认工作区；用户改动不得覆盖。
-3. 定位产品层根：src/ 单体后端；yu-ai-code-mother-frontend/ 前端；yu-ai-code-mother-microservice/ 微服务实现；sql/ 数据结构。
-4. 功能变更先关联 GitHub Issue；跨模块决策先写 ADR。
-5. 涉及外部服务时确认本地配置使用环境变量，不提交凭据。
+## 偏好归档
 
-## 变更边界
+- 维护者标识：`threetwoa`；上游仅在来源与许可证语境保留。
+- README 预览：仓库根 `python -m http.server 4313` → `http://127.0.0.1:4313/preview-readme.html`。
+- 优先小步修改；包名、Mapper namespace、SPI、扫描配置须同提交验证。
+- 单体与微服务双实现：改核心链路时同步或书面声明范围。
+- 输出语气：`docs/agents/voice.md`（覆盖全局 humanizer 的项目细则）。
 
-- 允许：修复、测试、文档、可验证的重构和明确批准的业务功能。
-- 需 ADR：协议、数据库模型、公共 API、跨模块依赖、认证授权和部署拓扑。
-- 禁止：修改第三方许可证；把 mock 当生产事实；提交密钥；为了“统一”合并具有不同职责的双实现。
-- 注释解释职责、约束、失败行为和设计理由，不复述代码语法。
+## Agent skills
 
-## 验证
+### Issue tracker
 
-`单体 ./mvnw compile；微服务 mvn compile；前端 npm run build`
+本地 Markdown：`.scratch/<feature>/`。见 `docs/agents/issue-tracker.md`。
 
-无法运行完整验证时，交付说明必须区分代码失败、依赖未安装和外部服务未就绪。
+### Triage labels
 
-## 交付
+canonical 五标签。见 `docs/agents/triage-labels.md`。
 
-使用 `docs/output/handoff/<theme>/` 记录范围、变更、验证、风险和回滚。提交前运行 `git diff --check`，并扫描身份残留、营销文案与密钥形态。
+### Domain docs
 
-## Claude 执行提示
-
-- README 预览：在仓库根运行 `python -m http.server 4313`，打开 `http://127.0.0.1:4313/preview-readme.html`。
-- 当前维护者标识：`threetwoa`；上游只在来源与许可证语境中保留。
-- 优先小步修改；包名、Mapper namespace、SPI 描述符和扫描配置必须作为一个原子变更验证。
+single-context：`CONTEXT.md` + `docs/adr/`。见 `docs/agents/domain.md`。

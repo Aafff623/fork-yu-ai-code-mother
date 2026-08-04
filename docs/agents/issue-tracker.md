@@ -1,22 +1,25 @@
-# Issue Tracker
+# Issue tracker: Local Markdown
 
-使用 GitHub Issues 作为唯一任务编号来源。
+Issues 与功能级 PRD 草稿落在 `.scratch/`（project-init 全局默认）。
 
-## Feature Issue
+## Conventions
 
-问题与用户 → 目标结果 → 非目标 → 验收条件 → 影响模块 → 风险/依赖。
+- 一功能一目录：`.scratch/<feature-slug>/`
+- PRD 草稿：`.scratch/<feature-slug>/PRD.md`（定稿再迁到 `docs/outputs/prd/{theme}/`）
+- 实现 Issue：`.scratch/<feature-slug>/issues/<NN>-<slug>.md`，从 `01` 编号
+- Triage：文件顶部 `Status:` 行（取值见 `triage-labels.md`）
+- 讨论追加到文末 `## Comments`
 
-## Bug Issue
+## When a skill says "publish to the issue tracker"
 
-1. 问题描述与影响
-2. 根因（文件、机制）
-3. 自动/手动复现
-4. 关键代码位置
-5. 修复方向
-6. 验证命令与预期
-7. 回归风险
-8. 接手 Agent 引导
+在 `.scratch/<feature-slug>/` 新建文件（目录不存在则创建）。
 
-## 关闭条件
+## When a skill says "fetch the relevant ticket"
 
-代码已合并、验收通过、文档同步且提交正文引用 Issue。环境阻塞不能用“无法复现”静默关闭。
+读取给定路径；用户通常直接传路径或编号。
+
+## Bug Issue 八段结构
+
+问题描述 → 根因 → 复现（自动/手动）→ 关键代码位置 → 修复方向 → 接手 Agent 引导 → 验证 → 回归风险。
+
+关闭条件：代码合并、验收通过、文档同步；环境阻塞不得用“无法复现”静默关闭。
