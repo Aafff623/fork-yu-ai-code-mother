@@ -16,7 +16,8 @@
 ## 偏好归档
 
 - 维护者标识：`threetwoa`；上游仅在来源与许可证语境保留。
-- README 预览：仓库根 `python -m http.server 4313` → `http://127.0.0.1:4313/preview-readme.html`。
+- README 预览：仓库根 `python -m http.server 4313` → `http://127.0.0.1:4313/preview-readme.html`（`window.__PREVIEW_README__.port` 须一致）。
+- 接手分析 Canvas：`canvases/fork-yu-ai-code-mother-analysis.canvas.tsx`。
 - 优先小步修改；包名、Mapper namespace、SPI、扫描配置须同提交验证。
 - 单体与微服务双实现：改核心链路时同步或书面声明范围。
 - 输出语气：`docs/agents/voice.md`（覆盖全局 humanizer 的项目细则）。

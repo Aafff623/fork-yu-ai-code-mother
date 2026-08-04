@@ -1,7 +1,7 @@
 # AI Code Mother · Context
 
 > 单一事实源：领域术语、硬约束、技术栈。备份见 `.scratch/context-backup-20260804.md`。  
-> 调研来源：仓库代码 + `fork-yu-ai-code-mother-analysis.canvas.tsx`（加速 Full，2026-08-04）。
+> 调研来源：仓库代码 + `canvases/fork-yu-ai-code-mother-analysis.canvas.tsx`（Full；2026-08-05 细致 Review 校正）。
 
 ## 一句话定位
 

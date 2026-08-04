@@ -132,6 +132,7 @@ python -m http.server 4313
 | `docs/outputs/` | report · prd · handoff · commit-history |
 | `docs/adr/` | 架构决策 |
 | `assets/images/readme/` | README 契约配图 |
+| `canvases/` | 接手分析 Canvas |
 
 ## 仓库结构摘要
 
@@ -157,4 +158,4 @@ assets/images/readme/             README 配图
 
 ## 维护者与许可
 
-原作者：**李鱼皮（[liyupi](https://github.com/liyupi)）**。二次开发维护者：**threetwoa**。许可证以 [LICENSE](LICENSE) 及[上游仓库](https://github.com/liyupi/yu-ai-code-mother)声明为准。
+原作者：**李鱼皮（[liyupi](https://github.com/liyupi)）**。二次开发维护者：**threetwoa**。许可证以上游仓库 [liyupi/yu-ai-code-mother](https://github.com/liyupi/yu-ai-code-mother) 声明为准（上游根目录暂无独立 `LICENSE` 文件）。
