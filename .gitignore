@@ -2,7 +2,16 @@
 application-local.yml
 application-prod.yml
 tmp
+**/tmp/
 .scratch/
+temp/
+.codegraph/
+.gitnexus/
+*.log
+logs/
+.env
+.DS_Store
+Thumbs.db
 
 HELP.md
 target/

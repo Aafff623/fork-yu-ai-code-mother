@@ -1,0 +1,68 @@
+# 本地开发配置模板
+# 用法：复制为 application-local.yml（已被 .gitignore 忽略），填入本地真实值后运行；
+# 数据源也可不改本文件，直接用 MYSQL_USERNAME / MYSQL_PASSWORD 环境变量注入。
+spring:
+  # mysql
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/yu_ai_code_mother
+    username:
+    password:
+  # redis
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+      password:
+      ttl: 3600
+# AI 模型（chat / streaming / reasoning 走 DeepSeek，路由走 DashScope 兼容模式）
+langchain4j:
+  open-ai:
+    chat-model:
+      base-url: https://api.deepseek.com
+      api-key:
+      model-name: deepseek-chat
+      max-tokens: 8192
+      log-requests: false
+      log-responses: false
+      max-retries: 3
+    streaming-chat-model:
+      base-url: https://api.deepseek.com
+      api-key:
+      model-name: deepseek-chat
+      max-tokens: 8192
+      log-requests: false
+      log-responses: false
+    # 推理 AI 模型配置（用于复杂的推理任务）
+    reasoning-streaming-chat-model:
+      base-url: https://api.deepseek.com
+      api-key:
+      model-name: deepseek-reasoner
+      max-tokens: 32768
+      temperature: 0.1
+      log-requests: false
+      log-responses: false
+    # 智能路由 AI 模型配置（用于简单的分类任务）
+    routing-chat-model:
+      base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+      api-key:
+      model-name: qwen-turbo
+      max-tokens: 100
+      log-requests: false
+      log-responses: false
+# 腾讯云 COS 对象存储（可选，不配则截图/上传相关功能不可用）
+cos:
+  client:
+    host:
+    secretId:
+    secretKey:
+    region:
+    bucket:
+# 阿里云 DashScope（图片生成等）
+dashscope:
+  api-key:
+  image-model: wan2.2-t2i-flash
+# Pexels 图片搜索（可选）
+pexels:
+  api-key:

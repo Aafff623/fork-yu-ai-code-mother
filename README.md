@@ -103,16 +103,7 @@ cd yu-ai-code-mother-frontend && npm run type-check && npm run build
 
 ## Preview
 
-本仓是单产品 Web 应用，**不**单独建资产 Gallery Preview 站；用下方 Showcase 与 README 预览壳即可。
-
-### README 本地预览壳
-
-```bash
-python -m http.server 4313
-# 浏览器打开 http://127.0.0.1:4313/preview-readme.html
-```
-
-须用 HTTP 打开；直接 `file://` 无法加载 `README.md`。
+本仓是单产品 Web 应用，**不**单独建资产 Gallery Preview 站；用下方 Showcase 演示路径即可。
 
 ## Showcase
 
@@ -124,15 +115,12 @@ python -m http.server 4313
 
 | 文件 | 用途 |
 |---|---|
-| `AGENTS.md` | Agent 硬约束与任务流 |
+| `AGENTS.md` | Agent 硬约束与构建验证 |
 | `CONTEXT.md` | 领域事实与技术栈 |
-| `LANGUAGES.md` | 共享用词 |
-| `CLAUDE.md` | 三层加载与维护偏好 |
-| `docs/agents/` | workflow / deliver / domain / issue-tracker… |
-| `docs/outputs/` | report · prd · handoff · commit-history |
+| `CLAUDE.md` | 指向 AGENTS / CONTEXT 的薄指针 |
 | `docs/adr/` | 架构决策 |
+| `docs/knowledge/architecture-overview.md` | 架构速览 |
 | `assets/images/readme/` | README 契约配图 |
-| `canvases/` | 接手分析 Canvas |
 
 ## 仓库结构摘要
 
@@ -141,9 +129,8 @@ src/main/                         单体后端
 yu-ai-code-mother-frontend/       Vue 3 前端
 yu-ai-code-mother-microservice/   七模块微服务
 sql/                              数据库脚本
-docs/{agents,adr,outputs,…}      Agent 与产物
+docs/{adr,knowledge}              架构决策与知识
 assets/images/readme/             README 配图
-.cursor/rules/                    项目级 Cursor MDC
 ```
 
 ## 视觉画册

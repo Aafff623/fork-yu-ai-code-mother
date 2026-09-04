@@ -1,67 +1,35 @@
 # AGENTS.md
 
-> **Output Style**: `humanizer-output-style` skill — 统一语气与去 AI 味。加载路径：`skills/humanizer-output-style/SKILL.md`  
-> **Windows Rules**: `.cursor/rules/windows-path-discipline.mdc` · `windows-shell-discipline.mdc`  
-> **Answer Format**: `.cursor/rules/answer-format.mdc`（含白话 Mermaid）  
-> **Commit History**: `.cursor/rules/commit-history.mdc`  
-> **项目规则镜像**: `.cursor/rules/AGENTS.mdc`
+## 定位
 
-## 项目使命
+从自然语言需求生成、预览、构建并部署 Web 应用的 AI 代码平台。fork 自 `liyupi/yu-ai-code-mother`，包坐标 `com.threetwoa.yuaicodemother`。领域事实与硬约束见 `CONTEXT.md`。
 
-从自然语言需求生成、预览、构建并部署 Web 应用的 AI 代码平台。维护目标：上游能力可持续二开，来源 / 许可证 / 行为边界清晰。
+## 架构速览
 
-## 开始任务前
+- 单体主链路：SSE → `controller` → `AiCodeGeneratorFacade` → 按类型分流 `HTML` / `MULTI_FILE`（聚合后统一解析落盘）与 `VUE_PROJECT`（LangChain4j 工具调用逐步写文件）；可选 `langgraph4j/` 工作流编排（质检重试上限见 `CodeGenWorkflow.MAX_QUALITY_CHECK_RETRY`）。
+- 微服务：`yu-ai-code-mother-microservice/` 下 7 模块独立聚合（common / model / client / user / app / ai / screenshot）。与单体是双实现，改核心链路须两侧同步或书面声明只改一侧。
+- 模型生成的文件必须限制在 `vue_project_{appId}` 沙箱目录内（`BaseTool.resolveSafePath` 统一校验，越界拒绝）；静态资源访问同样归一化校验，越界 403。
+- **警告**：`src/main/java/dev/langchain4j/` 下有 8 个与官方依赖同包名的遮蔽类（TokenStream、StreamingChatModel 等），是为适配 LC4j 1.1.0-beta7 的本地补丁。升级 LangChain4j 会被它们静默遮蔽，勿动勿删，升级前先逐一核对。
 
-1. 读 `CONTEXT.md`、`LANGUAGES.md`、`docs/agents/domain.md`。
-2. `git status --short` 确认工作区；不得覆盖用户未提交改动。
-3. 产品层根：`src/` 单体后端；`yu-ai-code-mother-frontend/` 前端；`yu-ai-code-mother-microservice/` 微服务；`sql/` 数据结构。
-4. 功能变更先落本地 Issue（`.scratch/<feature>/`）；跨模块决策先写 ADR。
-5. 外部服务配置只用环境变量 / 本地未跟踪文件，不提交凭据。
+## 构建与验证
 
-## 变更边界
-
-- 允许：修复、测试、文档、可验证重构、已批准业务功能。
-- 需 ADR：协议、库表、公共 API、跨模块依赖、认证授权、部署拓扑。
-- 禁止：改第三方许可证；mock 当生产事实；提交密钥；为“统一”合并职责不同的双实现。
-- 注释解释职责、约束、失败行为与设计理由；新增/改动代码附中文注释。
-
-## 任务流（摘要）
-
-```text
-Issue(.scratch) → report? → PRD → handoff → 实施 → Review → commit → commit-history
+```bash
+./mvnw compile -DskipTests          # 单体后端
+cd yu-ai-code-mother-microservice && mvn compile -DskipTests   # 微服务（7 模块 reactor）
+cd yu-ai-code-mother-frontend && npm run type-check && npm run build   # 前端
 ```
 
-细则：`docs/agents/workflow.md` · `deliver.md` · `archive.md`。  
-PRD 未批准不写功能代码；handoff 覆盖式更新（旧文件直接删除）。
+改了代码就要用真实构建/运行结果验收，不能只说"写完了"。
 
-## 验证
+## 约定
 
-`单体 ./mvnw compile`；微服务目录 `mvn compile`；前端 `npm run build` / `npm run type-check`。
+- `temp/` 是本地工作区，不入库；`.codegraph/` 不入库。
+- 敏感配置不入库：`application-local.yml` 保持忽略；首次运行自建（仿 `src/main/resources/application-local-sample.yml`，生产仿 `application-prod-sample.yml`），数据源凭据用 `MYSQL_USERNAME` / `MYSQL_PASSWORD` 等环境变量注入。
+- 停用语言与文案：注释解释职责、约束、失败行为与设计理由，新增/改动代码附中文注释。
+- 禁止：提交密钥；把 mock 当生产事实；为"统一"合并职责不同的单体/微服务双实现。
 
-无法跑全量时，交付须区分：代码失败 / 依赖未装 / 外部服务未就绪。
+## 改动边界
 
-## 交付路径
-
-| 产物 | 路径 |
-|---|---|
-| Issue | `.scratch/<feature>/` |
-| 调研 | `docs/outputs/report/{theme}/` |
-| PRD | `docs/outputs/prd/{theme}/` |
-| Handoff | `docs/outputs/handoff/{theme}/` |
-| Commit 攒批 | `docs/outputs/commit-history/{branch}/` |
-
-提交前：`git diff --check`；扫描身份残留、营销文案、密钥形态。
-
-## Agent skills
-
-### Issue tracker
-
-本地 Markdown：Issues / PRD 在 `.scratch/<feature>/`。见 `docs/agents/issue-tracker.md`。
-
-### Triage labels
-
-五种 canonical：`needs-triage` / `needs-info` / `ready-for-agent` / `ready-for-human` / `wontfix`。见 `docs/agents/triage-labels.md`。
-
-### Domain docs
-
-单文档：`CONTEXT.md` + `docs/adr/`。见 `docs/agents/domain.md`。
+- 允许：修复、测试、文档、可验证的小步重构。
+- 需先讨论并记录（ADR）：协议、库表、公共 API、跨模块依赖、认证授权、部署拓扑。
+- 破坏生产接口、持久化数据、外部契约的改动，先说明影响并确认。

@@ -1,83 +1,63 @@
-# AI Code Mother · Context
+# CONTEXT.md
 
-> 单一事实源：领域术语、硬约束、技术栈。备份见 `.scratch/context-backup-20260804.md`。  
-> 调研来源：仓库代码 + `canvases/fork-yu-ai-code-mother-analysis.canvas.tsx`（Full；2026-08-05 细致 Review 校正）。
+> 单一事实源：领域事实、硬约束、技术栈、backlog。所有内容以代码为准验证过（2026-09-05）。
 
-## 一句话定位
+## 定位
 
-从自然语言需求生成、预览、构建并部署 Web 应用的 AI 代码平台（fork：`liyupi/yu-ai-code-mother` → 包坐标 `com.threetwoa.yuaicodemother`）。
+从自然语言需求生成、预览、构建并部署 Web 应用的 AI 代码平台。fork 自 `liyupi/yu-ai-code-mother`，包坐标 `com.threetwoa.yuaicodemother`。origin：`Aafff623/fork-yu-ai-code-mother`。
 
-## 产品主链路
+## 主链路
 
-需求输入 → 类型路由（HTML / MULTI_FILE / VUE_PROJECT）→ 流式代码生成（SSE）→ 文件工具落盘 →（可选）LangGraph 编排 → 质量检查 / 构建 → 预览 / 部署 → 对话历史。
+需求输入 → 类型路由（HTML / MULTI_FILE / VUE_PROJECT）→ 流式代码生成（SSE）→ 文件工具落盘 →（可选）LangGraph 工作流编排 → 质量检查 / 构建 → 预览 / 部署 → 对话历史。
 
-## 代码边界
+代码路径：`controller` → `core.AiCodeGeneratorFacade`。HTML / MULTI_FILE 走 `processCodeStream`（聚合完整响应后统一解析落盘）；VUE_PROJECT 走 `processTokenStream`（工具调用逐步写文件，完成后 `VueProjectBuilder` 构建）。
+
+## 模块边界
 
 | 路径 | 职责 |
 |---|---|
 | `src/main/` | 单体后端完整实现 |
 | `yu-ai-code-mother-frontend/` | Vue 3 前端 |
-| `yu-ai-code-mother-microservice/` | 7 模块微服务拆分 |
+| `yu-ai-code-mother-microservice/` | 7 模块微服务：common / model / client / user / app / ai / screenshot |
 | `sql/` | 数据库脚本 |
 | `grafana/` · `prometheus.yml` | 可观测性示例 |
+| `docs/adr/` · `docs/knowledge/` | 架构决策与速览 |
 
-### 微服务模块
+单体与微服务是双实现：`ai/tools/`、`StaticResourceController`、`AiCodeGeneratorFacade`、`JsonMessageStreamHandler` 两边各有一份，改核心链路须两侧同步或书面声明只改一侧。
 
-`yu-ai-code-common` · `yu-ai-code-model` · `yu-ai-code-client` · `yu-ai-code-user` · `yu-ai-code-app` · `yu-ai-code-ai` · `yu-ai-code-screenshot`
-
-### 单体关键包
-
-| 包 | 职责 |
-|---|---|
-| `core/` | `AiCodeGeneratorFacade`、parser、saver、`VueProjectBuilder` |
-| `ai/` | 模型服务、guardrail、tools、消息协议 |
-| `langgraph4j/` | `CodeGenWorkflow`、node、state、concurrent |
-| `controller/` | App / User / ChatHistory / Workflow / Static |
-| `service/` | 应用与用户等领域服务 |
-| `ratelimter/` | 限流 + AOP + Redisson |
-| `monitor/` | AI 调用指标 |
-
-## 技术栈（事实）
+## 技术栈（已验证）
 
 | 层 | 选型 | 备注 |
 |---|---|---|
-| 后端 | Spring Boot 3.5.4 / Java 21 | 默认端口 8123，`context-path` `/api` |
-| AI | LangChain4j 1.1 + DashScope / DeepSeek | chat / streaming / reasoning / routing |
-| 工作流 | LangGraph4j 1.6-rc2 + Studio | 节点图 + 质量检查重试 |
-| 数据 | MySQL + MyBatis-Flex + Redis Session | Redisson 限流；Caffeine 本地缓存 |
-| 周边 | Selenium 截图 · 腾讯云 COS · Prometheus/Grafana | 可选能力 |
-| 微服务 | Dubbo 3.3 + Nacos + Spring Cloud Alibaba | user / app / ai / screenshot |
+| 后端 | Spring Boot 3.5.4 / Java 21 | 端口 8123，context-path `/api`，默认 profile `local` |
+| AI | LangChain4j 1.1.0（core），starter / reactor / redis 社区包 1.1.0-beta7 | **锁定 beta7**：`src/main/java/dev/langchain4j/` 下 8 个同包名遮蔽类依赖该版本行为，升级即静默失效 |
+| 工作流 | LangGraph4j 1.6.0-rc2 + Studio | 质检重试有上限（`CodeGenWorkflow.MAX_QUALITY_CHECK_RETRY = 2`） |
+| 数据 | MySQL + MyBatis-Flex 2.21.1 + Redis Session | Redisson 限流；Caffeine 本地缓存 |
+| 周边 | Selenium 截图 · 腾讯云 COS · Prometheus/Grafana | 可选 |
+| 微服务 | Dubbo 3.3 + Nacos + Spring Cloud Alibaba | 完整运行另需 Nacos |
 | 前端 | Vue 3.5 + Vite 7 + Ant Design Vue + Pinia + TS | openapi2ts · eslint · vue-tsc |
-| 文档 API | Knife4j | 扫描 `yuaicodemother.controller` |
 
-## 关键不变量
+## 运行依赖
 
-- 模型生成文件必须限制在应用工作目录（如 `vue_project_{appId}`）；路径规范化后拒绝越界（403）。
-- 工具消息与正文消息不得混淆。
-- 单体与微服务存在双实现：改生成/工具链路时两边同步或明确只改一侧并写 handoff。
-- 身份标识使用 `threetwoa`；上游名称仅用于来源与许可证。
-- 配置与凭据分离；仓库只保留 sample，禁止真实 Key 入库。
-- 前端存在 string/number ID 类型债务【待确认具体统一策略】。
+JDK 21、Node.js 20+、MySQL（库 `yu_ai_code_mother`）、Redis、模型 API Key。本地开发配置放 `application-local.yml`（不入库，自建时仿 `application-local-sample.yml`）；数据源凭据经 `MYSQL_USERNAME` / `MYSQL_PASSWORD` 环境变量注入，仓库中不留真实口令。
 
-## 运行与验证
+## 领域约束（硬性）
 
-- 依赖：JDK 21、Node.js 20+、MySQL（库 `yu_ai_code_mother`）、Redis、模型 Key；可选 COS / Pexels / Selenium。
-- 单体：`./mvnw spring-boot:run`
-- 前端：`cd yu-ai-code-mother-frontend && npm i && npm run dev`
-- 验证：`./mvnw test` · `npm run type-check && npm run build`
-- README 预览壳：`python -m http.server 4313` → `http://127.0.0.1:4313/preview-readme.html`
-- Agent 本地开发通常只需 MySQL/Redis/模型；完整微服务另需 Nacos/Dubbo。
+1. 模型给出的路径必须限制在沙箱目录 `tmp/code_output/vue_project_{appId}` 内：`BaseTool.resolveSafePath` 负责 normalize + `startsWith` 校验，绝对路径与 `../` 上跳抛 `SecurityException`；写/读/改/删工具把拒绝原因作为工具结果返回给模型。
+2. 静态资源 `/static/{deployKey}/**` 同样先归一化再校验越界，越界返回 403（单体 + 微服务 `StaticResourceController`）。
+3. 流式落盘失败必须以 `BusinessException` 传播为 SSE onError，禁止吞掉异常后正常 complete（`processCodeStream`）。
+4. 工作流每次运行用雪花 ID `WorkflowContext.workflowRunId` 隔离生成目录，不得回退到硬编码 appId；质检失败重试超过 `MAX_QUALITY_CHECK_RETRY` 次后写 `errorMessage` 并走 `skip_build` 结束。
+5. 工具消息与正文消息不得混淆；`JsonMessageStreamHandler` 对幻觉工具名与未知消息类型必须判空跳过。
+6. 身份标识用 `threetwoa`；上游名称仅用于来源与许可证语境。
 
-## 当前事实
+## 已知未修复 backlog
 
-- `origin`：`Aafff623/fork-yu-ai-code-mother`；`upstream`：`liyupi/yu-ai-code-mother`。
-- 进行中（未入本次 init）：沙箱路径与流式相关 bugfix 工作区改动；handoff 见 `docs/outputs/handoff/bugfix-sandbox-and-stream/`。
-- LangGraph 依赖为 rc 版，API 稳定性【待确认】。
+- `monitor/` 的 `MonitorContext` 基于 ThreadLocal，在 Reactor 异步链路存在跨请求串号风险，需 reactor Context 改造（本次未修）。
+- `src/main/java/dev/langchain4j/` 8 个遮蔽类与官方库收敛策略未定，升级 LC4j 前必须逐一核对。
+- 前端 string / number ID 类型债务，统一策略待定。
+- 微服务与单体的双实现长期收敛方案待定。
 
-## 推荐阅读顺序
+## 待确认项
 
-1. `README.md` — 产品与启动
-2. 本文件 + `docs/agents/domain.md` + `LANGUAGES.md`
-3. `core/` → `ai/` → `langgraph4j/` → `service/` / `controller/`
-4. `yu-ai-code-mother-microservice/` 对照单体
-5. `docs/adr/` · `docs/outputs/handoff/`
+- LangGraph4j 1.6.0-rc2 为 rc 版，API 稳定性未确认。
+- 历史遗留的 `*_0` 生成目录（旧硬编码 appId 产物）已无流程引用，可手动清理。
