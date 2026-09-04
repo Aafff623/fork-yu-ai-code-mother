@@ -1,7 +1,6 @@
 package com.threetwoa.yuaicodemother.ai.tools;
 
 import cn.hutool.json.JSONObject;
-import com.threetwoa.yuaicodemother.constant.AppConstant;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.agent.tool.ToolMemoryId;
@@ -11,7 +10,6 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  * 文件删除工具
@@ -28,12 +26,8 @@ public class FileDeleteTool extends BaseTool {
             @ToolMemoryId Long appId
     ) {
         try {
-            Path path = Paths.get(relativeFilePath);
-            if (!path.isAbsolute()) {
-                String projectDirName = "vue_project_" + appId;
-                Path projectRoot = Paths.get(AppConstant.CODE_OUTPUT_ROOT_DIR, projectDirName);
-                path = projectRoot.resolve(relativeFilePath);
-            }
+            // 路径必须落在应用沙箱目录内，绝对路径与 ../ 上跳统一拒绝
+            Path path = resolveSafePath(appId, relativeFilePath);
             if (!Files.exists(path)) {
                 return "警告：文件不存在，无需删除 - " + relativeFilePath;
             }
@@ -48,6 +42,10 @@ public class FileDeleteTool extends BaseTool {
             Files.delete(path);
             log.info("成功删除文件: {}", path.toAbsolutePath());
             return "文件删除成功: " + relativeFilePath;
+        } catch (SecurityException e) {
+            String errorMessage = "文件删除被拒绝: " + relativeFilePath + ", 原因: " + e.getMessage();
+            log.error(errorMessage);
+            return errorMessage;
         } catch (IOException e) {
             String errorMessage = "删除文件失败: " + relativeFilePath + ", 错误: " + e.getMessage();
             log.error(errorMessage, e);

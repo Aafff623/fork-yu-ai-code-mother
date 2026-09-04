@@ -1,12 +1,36 @@
 package com.threetwoa.yuaicodemother.ai.tools;
 
 import cn.hutool.json.JSONObject;
+import com.threetwoa.yuaicodemother.constant.AppConstant;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * 工具基类
  * 定义所有工具的通用接口
  */
 public abstract class BaseTool {
+
+    /**
+     * 将模型给出的路径解析到应用沙箱目录内
+     * 以 vue_project_{appId} 为唯一根目录，resolve 后 normalize，再用 startsWith 校验仍在根目录内；
+     * 绝对路径与 ../ 上跳会被统一拦截，越界抛 SecurityException
+     *
+     * @param appId        应用 ID，决定沙箱根目录
+     * @param relativePath 模型给出的相对路径
+     * @return 沙箱内规范化后的绝对路径
+     * @throws SecurityException 当路径越界时抛出
+     */
+    protected Path resolveSafePath(Long appId, String relativePath) {
+        Path projectRoot = Paths.get(AppConstant.CODE_OUTPUT_ROOT_DIR, "vue_project_" + appId)
+                .toAbsolutePath().normalize();
+        Path resolvedPath = projectRoot.resolve(relativePath).normalize();
+        if (!resolvedPath.startsWith(projectRoot)) {
+            throw new SecurityException("路径越界，已拒绝访问: " + relativePath);
+        }
+        return resolvedPath;
+    }
 
     /**
      * 获取工具的英文名称（对应方法名）

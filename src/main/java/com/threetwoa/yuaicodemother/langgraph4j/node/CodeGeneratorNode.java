@@ -31,14 +31,14 @@ public class CodeGeneratorNode {
             // 获取 AI 代码生成外观服务
             AiCodeGeneratorFacade codeGeneratorFacade = SpringContextUtil.getBean(AiCodeGeneratorFacade.class);
             log.info("开始生成代码，类型: {} ({})", generationType.getValue(), generationType.getText());
-            // 先使用固定的 appId (后续再整合到业务中)
-            Long appId = 0L;
+            // 使用本次工作流运行隔离的 runId 作为目录键，替代硬编码 appId，避免并发请求互相覆盖
+            Long runId = context.getWorkflowRunId() != null ? context.getWorkflowRunId() : 0L;
             // 调用流式代码生成
-            Flux<String> codeStream = codeGeneratorFacade.generateAndSaveCodeStream(userMessage, generationType, appId);
+            Flux<String> codeStream = codeGeneratorFacade.generateAndSaveCodeStream(userMessage, generationType, runId);
             // 同步等待流式输出完成
             codeStream.blockLast(Duration.ofMinutes(10)); // 最多等待 10 分钟
             // 根据类型设置生成目录
-            String generatedCodeDir = String.format("%s/%s_%s", AppConstant.CODE_OUTPUT_ROOT_DIR, generationType.getValue(), appId);
+            String generatedCodeDir = String.format("%s/%s_%s", AppConstant.CODE_OUTPUT_ROOT_DIR, generationType.getValue(), runId);
             log.info("AI 代码生成完成，生成目录: {}", generatedCodeDir);
 
             // 更新状态

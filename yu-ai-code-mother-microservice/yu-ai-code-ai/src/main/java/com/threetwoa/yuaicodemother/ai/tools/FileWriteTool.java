@@ -2,7 +2,6 @@ package com.threetwoa.yuaicodemother.ai.tools;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.json.JSONObject;
-import com.threetwoa.yuaicodemother.constant.AppConstant;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.agent.tool.ToolMemoryId;
@@ -10,9 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
 /**
@@ -32,25 +31,24 @@ public class FileWriteTool extends BaseTool {
             @ToolMemoryId Long appId
     ) {
         try {
-            Path path = Paths.get(relativeFilePath);
-            if (!path.isAbsolute()) {
-                // 相对路径处理，创建基于 appId 的项目目录
-                String projectDirName = "vue_project_" + appId;
-                Path projectRoot = Paths.get(AppConstant.CODE_OUTPUT_ROOT_DIR, projectDirName);
-                path = projectRoot.resolve(relativeFilePath);
-            }
+            // 路径必须落在应用沙箱目录内，绝对路径与 ../ 上跳统一拒绝
+            Path path = resolveSafePath(appId, relativeFilePath);
             // 创建父目录（如果不存在）
             Path parentDir = path.getParent();
             if (parentDir != null) {
                 Files.createDirectories(parentDir);
             }
-            // 写入文件内容
-            Files.write(path, content.getBytes(),
+            // 写入文件内容（统一 UTF-8，避免平台默认编码差异）
+            Files.write(path, content.getBytes(StandardCharsets.UTF_8),
                     StandardOpenOption.CREATE,
                     StandardOpenOption.TRUNCATE_EXISTING);
             log.info("成功写入文件: {}", path.toAbsolutePath());
             // 注意要返回相对路径，不能让 AI 把文件绝对路径返回给用户
             return "文件写入成功: " + relativeFilePath;
+        } catch (SecurityException e) {
+            String errorMessage = "文件写入被拒绝: " + relativeFilePath + ", 原因: " + e.getMessage();
+            log.error(errorMessage);
+            return errorMessage;
         } catch (IOException e) {
             String errorMessage = "文件写入失败: " + relativeFilePath + ", 错误: " + e.getMessage();
             log.error(errorMessage, e);

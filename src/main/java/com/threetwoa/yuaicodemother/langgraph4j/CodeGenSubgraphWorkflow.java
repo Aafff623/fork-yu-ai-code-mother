@@ -1,5 +1,6 @@
 package com.threetwoa.yuaicodemother.langgraph4j;
 
+import cn.hutool.core.util.IdUtil;
 import com.threetwoa.yuaicodemother.exception.BusinessException;
 import com.threetwoa.yuaicodemother.exception.ErrorCode;
 import com.threetwoa.yuaicodemother.langgraph4j.model.QualityResult;
@@ -170,9 +171,11 @@ public class CodeGenSubgraphWorkflow {
     public WorkflowContext executeWorkflow(String originalPrompt) {
         CompiledGraph<MessagesState<String>> workflow = createWorkflow();
 
+        // 初始化 WorkflowContext（每次运行使用独立雪花 ID，隔离生成目录）
         WorkflowContext initialContext = WorkflowContext.builder()
                 .originalPrompt(originalPrompt)
                 .currentStep("初始化")
+                .workflowRunId(IdUtil.getSnowflakeNextId())
                 .build();
 
         GraphRepresentation graph = workflow.getGraph(GraphRepresentation.Type.MERMAID);

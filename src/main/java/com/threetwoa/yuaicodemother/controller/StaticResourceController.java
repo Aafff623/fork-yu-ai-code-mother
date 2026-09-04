@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.HandlerMapping;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * 静态资源访问
@@ -22,8 +24,8 @@ import java.io.File;
 @RequestMapping("/static")
 public class StaticResourceController {
 
-    // 应用生成根目录（用于浏览）
-    private static final String PREVIEW_ROOT_DIR = AppConstant.CODE_OUTPUT_ROOT_DIR;
+    // 应用生成根目录（用于浏览），归一化为绝对路径作为越界校验基准
+    private static final Path PREVIEW_ROOT_PATH = Paths.get(AppConstant.CODE_OUTPUT_ROOT_DIR).toAbsolutePath().normalize();
 
     /**
      * 提供静态资源访问，支持目录重定向
@@ -47,9 +49,12 @@ public class StaticResourceController {
             if (resourcePath.equals("/")) {
                 resourcePath = "/index.html";
             }
-            // 构建文件路径
-            String filePath = PREVIEW_ROOT_DIR + "/" + deployKey + resourcePath;
-            File file = new File(filePath);
+            // 构建文件路径：先归一化再做边界校验，防止 deployKey/resourcePath 携带 ../ 穿越出预览根目录
+            Path filePath = PREVIEW_ROOT_PATH.resolve(deployKey + resourcePath).normalize();
+            if (!filePath.startsWith(PREVIEW_ROOT_PATH)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            File file = filePath.toFile();
             // 检查文件是否存在
             if (!file.exists()) {
                 return ResponseEntity.notFound().build();
@@ -57,7 +62,7 @@ public class StaticResourceController {
             // 返回文件资源
             Resource resource = new FileSystemResource(file);
             return ResponseEntity.ok()
-                    .header("Content-Type", getContentTypeWithCharset(filePath))
+                    .header("Content-Type", getContentTypeWithCharset(filePath.toString()))
                     .body(resource);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

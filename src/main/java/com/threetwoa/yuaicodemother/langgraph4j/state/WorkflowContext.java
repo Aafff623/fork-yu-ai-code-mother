@@ -35,6 +35,18 @@ public class WorkflowContext implements Serializable {
     private String currentStep;
 
     /**
+     * 本次工作流运行的唯一 ID（雪花 ID）
+     * 用作生成目录隔离键，替代硬编码 appId，避免并发请求共享同一目录互相覆盖
+     */
+    private Long workflowRunId;
+
+    /**
+     * 质检失败后的重试次数
+     * 配合 CodeGenWorkflow.MAX_QUALITY_CHECK_RETRY 限制回退重生成的次数
+     */
+    private Integer qualityCheckRetryCount;
+
+    /**
      * 用户原始输入的提示词
      */
     private String originalPrompt;

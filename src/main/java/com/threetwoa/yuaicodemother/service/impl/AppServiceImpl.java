@@ -245,10 +245,11 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
                 .collect(Collectors.toSet());
         Map<Long, UserVO> userVOMap = userService.listByIds(userIds).stream()
                 .collect(Collectors.toMap(User::getId, userService::getUserVO));
+        // 直接复用批量结果组装 VO，不能循环内调 getAppVO（其内部会逐条 getById）
         return appList.stream().map(app -> {
-            AppVO appVO = getAppVO(app);
-            UserVO userVO = userVOMap.get(app.getUserId());
-            appVO.setUser(userVO);
+            AppVO appVO = new AppVO();
+            BeanUtil.copyProperties(app, appVO);
+            appVO.setUser(userVOMap.get(app.getUserId()));
             return appVO;
         }).collect(Collectors.toList());
     }

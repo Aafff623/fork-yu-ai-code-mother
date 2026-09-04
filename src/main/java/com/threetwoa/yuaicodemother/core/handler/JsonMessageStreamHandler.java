@@ -70,6 +70,11 @@ public class JsonMessageStreamHandler {
         // 解析 JSON
         StreamMessage streamMessage = JSONUtil.toBean(chunk, StreamMessage.class);
         StreamMessageTypeEnum typeEnum = StreamMessageTypeEnum.getEnumByValue(streamMessage.getType());
+        // 未知类型直接跳过，避免 switch(null) 抛 NPE 中断整个流
+        if (typeEnum == null) {
+            log.error("不支持的消息类型: {}", streamMessage.getType());
+            return "";
+        }
         switch (typeEnum) {
             case AI_RESPONSE -> {
                 AiResponseMessage aiMessage = JSONUtil.toBean(chunk, AiResponseMessage.class);
@@ -86,8 +91,12 @@ public class JsonMessageStreamHandler {
                 if (toolId != null && !seenToolIds.contains(toolId)) {
                     // 第一次调用这个工具，记录 ID 并完整返回工具信息
                     seenToolIds.add(toolId);
-                    // 根据工具名称获取工具实例
+                    // 根据工具名称获取工具实例；模型可能幻觉出不存在的工具，判空防止 NPE
                     BaseTool tool = toolManager.getTool(toolName);
+                    if (tool == null) {
+                        log.error("未注册的工具名称: {}", toolName);
+                        return "";
+                    }
                     // 返回格式化的工具调用信息
                     return tool.generateToolRequestResponse();
                 } else {
@@ -98,9 +107,13 @@ public class JsonMessageStreamHandler {
             case TOOL_EXECUTED -> {
                 ToolExecutedMessage toolExecutedMessage = JSONUtil.toBean(chunk, ToolExecutedMessage.class);
                 JSONObject jsonObject = JSONUtil.parseObj(toolExecutedMessage.getArguments());
-                // 根据工具名称获取工具实例
+                // 根据工具名称获取工具实例；模型可能幻觉出不存在的工具，判空防止 NPE
                 String toolName = toolExecutedMessage.getName();
                 BaseTool tool = toolManager.getTool(toolName);
+                if (tool == null) {
+                    log.error("未注册的工具名称: {}", toolName);
+                    return "";
+                }
                 String result = tool.generateToolExecutedResult(jsonObject);
                 // 输出前端和要持久化的内容
                 String output = String.format("\n\n%s\n\n", result);

@@ -1,5 +1,6 @@
 package com.threetwoa.yuaicodemother.langgraph4j;
 
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import com.threetwoa.yuaicodemother.exception.BusinessException;
 import com.threetwoa.yuaicodemother.exception.ErrorCode;
@@ -29,6 +30,11 @@ import static org.bsc.langgraph4j.action.AsyncEdgeAction.edge_async;
  */
 @Slf4j
 public class CodeGenWorkflow {
+
+    /**
+     * 质检失败最大重试次数，超限后不再回退重新生成，避免无限循环消耗模型调用
+     */
+    private static final int MAX_QUALITY_CHECK_RETRY = 2;
 
     /**
      * 创建完整的工作流
@@ -73,10 +79,11 @@ public class CodeGenWorkflow {
     public WorkflowContext executeWorkflow(String originalPrompt) {
         CompiledGraph<MessagesState<String>> workflow = createWorkflow();
 
-        // 初始化 WorkflowContext
+        // 初始化 WorkflowContext（每次运行使用独立雪花 ID，隔离生成目录）
         WorkflowContext initialContext = WorkflowContext.builder()
                 .originalPrompt(originalPrompt)
                 .currentStep("初始化")
+                .workflowRunId(IdUtil.getSnowflakeNextId())
                 .build();
 
         GraphRepresentation graph = workflow.getGraph(GraphRepresentation.Type.MERMAID);
@@ -108,9 +115,11 @@ public class CodeGenWorkflow {
             Thread.startVirtualThread(() -> {
                 try {
                     CompiledGraph<MessagesState<String>> workflow = createWorkflow();
+                    // 初始化 WorkflowContext（每次运行使用独立雪花 ID，隔离生成目录）
                     WorkflowContext initialContext = WorkflowContext.builder()
                             .originalPrompt(originalPrompt)
                             .currentStep("初始化")
+                            .workflowRunId(IdUtil.getSnowflakeNextId())
                             .build();
                     sink.next(formatSseEvent("workflow_start", Map.of(
                             "message", "开始执行代码生成工作流",
@@ -171,9 +180,11 @@ public class CodeGenWorkflow {
         Thread.startVirtualThread(() -> {
             try {
                 CompiledGraph<MessagesState<String>> workflow = createWorkflow();
+                // 初始化 WorkflowContext（每次运行使用独立雪花 ID，隔离生成目录）
                 WorkflowContext initialContext = WorkflowContext.builder()
                         .originalPrompt(originalPrompt)
                         .currentStep("初始化")
+                        .workflowRunId(IdUtil.getSnowflakeNextId())
                         .build();
                 sendSseEvent(emitter, "workflow_start", Map.of(
                         "message", "开始执行代码生成工作流",
@@ -237,7 +248,15 @@ public class CodeGenWorkflow {
         QualityResult qualityResult = context.getQualityResult();
         // 如果质检失败，重新生成代码
         if (qualityResult == null || !qualityResult.getIsValid()) {
-            log.error("代码质检失败，需要重新生成代码");
+            // 重试次数超限后不再回退，记录错误并直接结束，避免无限循环消耗模型调用
+            int retryCount = context.getQualityCheckRetryCount() == null ? 0 : context.getQualityCheckRetryCount();
+            if (retryCount >= MAX_QUALITY_CHECK_RETRY) {
+                log.error("代码质检失败且已达到最大重试次数 {}，终止工作流", MAX_QUALITY_CHECK_RETRY);
+                context.setErrorMessage("代码质检失败，已重试 " + retryCount + " 次仍未通过");
+                return "skip_build";
+            }
+            context.setQualityCheckRetryCount(retryCount + 1);
+            log.error("代码质检失败，第 {} 次重新生成代码", retryCount + 1);
             return "fail";
         }
         // 质检通过，使用原有的构建路由逻辑
